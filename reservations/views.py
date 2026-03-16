@@ -1,11 +1,11 @@
-import uuid
+﻿import uuid
 from django.core.cache import cache
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Ticket
 from .serializers import TicketSerializer
-from .tasks import release_seat_lock
+from .tasks import release_seat_lock, send_ticket_confirmation_email
 from movies.models import Session, Seat
 from django.conf import settings
 
@@ -18,17 +18,17 @@ class ReserveSeatView(APIView):
             session = Session.objects.get(id=session_id)
             seat = Seat.objects.get(id=seat_id)
         except (Session.DoesNotExist, Seat.DoesNotExist):
-            return Response({'error': 'Sessão ou assento não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Sessao ou assento nao encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         if seat.room != session.room:
-            return Response({'error': 'Assento não pertence à sala desta sessão.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Assento nao pertence a sala desta sessao.'}, status=status.HTTP_400_BAD_REQUEST)
 
         lock_key = f"seat_lock:{session_id}:{seat_id}"
         if cache.get(lock_key):
             return Response({'error': 'Assento temporariamente reservado.'}, status=status.HTTP_409_CONFLICT)
 
         if Ticket.objects.filter(session=session, seat=seat, status='purchased').exists():
-            return Response({'error': 'Assento já comprado.'}, status=status.HTTP_409_CONFLICT)
+            return Response({'error': 'Assento ja comprado.'}, status=status.HTTP_409_CONFLICT)
 
         timeout = getattr(settings, 'SEAT_LOCK_TIMEOUT', 600)
         cache.set(lock_key, request.user.id, timeout=timeout)
@@ -57,16 +57,16 @@ class CheckoutView(APIView):
             return Response({'error': 'Nenhuma reserva ativa encontrada. Reserve o assento primeiro.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if lock != request.user.id:
-            return Response({'error': 'Esta reserva pertence a outro usuário.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'Esta reserva pertence a outro usuario.'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
             session = Session.objects.get(id=session_id)
             seat = Seat.objects.get(id=seat_id)
         except (Session.DoesNotExist, Seat.DoesNotExist):
-            return Response({'error': 'Sessão ou assento não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Sessao ou assento nao encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         if Ticket.objects.filter(session=session, seat=seat, status='purchased').exists():
-            return Response({'error': 'Assento já comprado.'}, status=status.HTTP_409_CONFLICT)
+            return Response({'error': 'Assento ja comprado.'}, status=status.HTTP_409_CONFLICT)
 
         ticket = Ticket.objects.create(
             user=request.user,
@@ -77,6 +77,15 @@ class CheckoutView(APIView):
         )
 
         cache.delete(lock_key)
+
+        send_ticket_confirmation_email.delay(
+            user_email=request.user.email,
+            ticket_code=ticket.ticket_code,
+            movie_title=session.movie.title,
+            session_datetime=str(session.datetime),
+            seat_row=seat.row,
+            seat_column=seat.column,
+        )
 
         return Response(TicketSerializer(ticket).data, status=status.HTTP_201_CREATED)
 

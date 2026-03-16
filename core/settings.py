@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
@@ -115,7 +115,7 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'CineReserve API',
-    'DESCRIPTION': 'API para gerenciamento de cinema Cinépolis Natal',
+    'DESCRIPTION': 'API para gerenciamento de reservas do cinema Cinepolis Natal',
     'VERSION': '1.0.0',
 }
 
@@ -126,3 +126,11 @@ CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'sandbox.smtp.mailtrap.io')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = True
+EMAIL_FROM = os.environ.get('EMAIL_FROM', 'noreply@cinereserve.com')
