@@ -32,7 +32,7 @@ jobs:
 
     env:
       DEBUG: True
-      SECRET_KEY: django-insecure-ci-test-key
+      SECRET_KEY: django-insecure-ci-test-key-32-characters-long
       ALLOWED_HOSTS: localhost,127.0.0.1
       DB_NAME: cinereserve
       DB_USER: postgres
