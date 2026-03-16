@@ -1,10 +1,19 @@
-import pytest
+﻿import pytest
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from rest_framework.test import APIClient
 from movies.models import Movie, Room, Session, Seat
+from reservations.models import Ticket
 from django.utils import timezone
 
 User = get_user_model()
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture

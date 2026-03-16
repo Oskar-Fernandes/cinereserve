@@ -1,5 +1,6 @@
-from rest_framework import serializers
+﻿from rest_framework import serializers
 from .models import Movie, Session, Seat, Room
+from django.core.cache import cache
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -37,17 +38,9 @@ class SeatSerializer(serializers.ModelSerializer):
         if not session_id:
             return 'available'
         from reservations.models import Ticket
-        import django_redis
-        import django.core.cache as cache_module
-        cache = cache_module.cache
         lock_key = f"seat_lock:{session_id}:{obj.id}"
         if cache.get(lock_key):
             return 'reserved'
-        ticket = Ticket.objects.filter(
-            session_id=session_id,
-            seat=obj,
-            status='purchased'
-        ).exists()
-        if ticket:
+        if Ticket.objects.filter(session_id=session_id, seat=obj, status='purchased').exists():
             return 'purchased'
         return 'available'
