@@ -1,0 +1,29 @@
+[project]
+name = "cinereserve"
+version = "0.1.0"
+description = "Cinema reservation API"
+requires-python = ">=3.12"
+dependencies = ["python-dotenv (>=1.2.2,<2.0.0)"]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+django = "^6.0.3"
+djangorestframework = "^3.16.1"
+djangorestframework-simplejwt = "^5.5.1"
+psycopg2-binary = "^2.9.11"
+redis = "^7.3.0"
+django-redis = "^6.0.0"
+drf-spectacular = "^0.29.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+pytest-django = "^4.12.0"
+factory-boy = "^3.3.3"
+faker = "^40.11.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
