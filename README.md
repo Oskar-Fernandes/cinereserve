@@ -1,33 +1,34 @@
+@'
 # 🎬 CineReserve API
 
 ![CI](https://github.com/Oskar-Fernandes/cinereserve/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Python](https://img.shields.io/badge/Python-3.12+-blue)
 ![Django](https://img.shields.io/badge/Django-6.0-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Redis](https://img.shields.io/badge/Redis-7-red)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-API RESTful para sistema de reserva de ingressos do cinema **Cinépolis Natal**.
+> API RESTful para sistema de reserva de ingressos do cinema **Cinepolis Natal**.
 
 ---
 
 ## 🏗️ Arquitetura
 ```
-┌─────────────────────────────────────────────────────┐
-│                    CineReserve API                   │
-├──────────────┬──────────────┬───────────────────────┤
-│    users     │    movies    │     reservations       │
-│  ─────────   │  ─────────   │  ─────────────────     │
-│  Registro    │  Filmes      │  Reservar Assento      │
-│  Login JWT   │  Sessões     │  Checkout              │
-│  Perfil      │  Mapa Asst.  │  Meus Ingressos        │
-└──────┬───────┴──────┬───────┴──────────┬────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                     CineReserve API                      │
+├──────────────┬──────────────┬───────────────────────────┤
+│    users     │    movies    │       reservations         │
+│  Registro    │  Filmes      │  Reservar Assento          │
+│  Login JWT   │  Sessoes     │  Checkout                  │
+│  Perfil      │  Mapa Asst.  │  Meus Ingressos            │
+└──────┬───────┴──────┬───────┴──────────┬────────────────┘
        │              │                  │
-┌──────▼──────┐ ┌─────▼──────┐ ┌────────▼───────┐
-│  PostgreSQL  │ │   Redis    │ │     Celery     │
-│  (banco)     │ │  (locks +  │ │  (liberação    │
-│              │ │   cache)   │ │   automática)  │
-└─────────────┘ └────────────┘ └────────────────┘
+┌──────▼──────┐ ┌─────▼──────┐ ┌────────▼────────────────┐
+│  PostgreSQL  │ │   Redis    │ │        Celery            │
+│  (banco)     │ │  (locks +  │ │  - Auto-release locks    │
+│              │ │   cache)   │ │  - Email confirmacao     │
+└─────────────┘ └────────────┘ └─────────────────────────┘
 ```
 
 ---
@@ -36,13 +37,14 @@ API RESTful para sistema de reserva de ingressos do cinema **Cinépolis Natal**.
 
 | Camada | Tecnologia |
 |---|---|
-| Linguagem | Python 3.12 |
+| Linguagem | Python 3.12+ |
 | Framework | Django 6 + Django REST Framework |
-| Autenticação | JWT (djangorestframework-simplejwt) |
+| Autenticacao | JWT (djangorestframework-simplejwt) |
 | Banco de Dados | PostgreSQL 16 |
-| Cache / Lock | Redis 7 |
-| Tarefas Assíncronas | Celery |
-| Documentação | Swagger (drf-spectacular) |
+| Cache / Lock Distribuido | Redis 7 |
+| Tarefas Assincronas | Celery |
+| Email | Mailtrap (SMTP Sandbox) |
+| Documentacao | Swagger (drf-spectacular) |
 | Testes | pytest + pytest-django |
 | Containers | Docker + Docker Compose |
 | CI/CD | GitHub Actions |
@@ -51,29 +53,46 @@ API RESTful para sistema de reserva de ingressos do cinema **Cinépolis Natal**.
 
 ## ✅ Funcionalidades
 
-- Cadastro e autenticação de usuários com JWT
-- Listagem de filmes e sessões disponíveis
-- Mapa de assentos em tempo real (disponível, reservado, comprado)
-- Lock distribuído de 10 minutos por assento via Redis
-- Checkout e geração de ingresso digital único
-- Portal "Meus Ingressos" com histórico completo
-- Rate limiting nos endpoints de autenticação
-- Liberação automática de locks expirados via Celery
-- Tratamento global de erros com respostas padronizadas
-- Endpoint de health check (`/api/health/`)
-- Comando de seed para popular o banco com dados de exemplo
-- Pipeline CI/CD com GitHub Actions
+### Requisitos Tecnicos
+- [x] API RESTful com Django REST Framework e Poetry
+- [x] Autenticacao JWT
+- [x] Banco de dados PostgreSQL
+- [x] Redis como distributed lock para reservas temporarias
+- [x] Cache Redis nos endpoints de alta leitura (filmes e sessoes)
+- [x] Paginacao em todos os endpoints de listagem
+- [x] Testes unitarios e de integracao (9/9 passando)
+- [x] Documentacao Swagger em `/api/docs/`
+- [x] Docker + Docker Compose
+- [x] Repositorio publico no GitHub
+
+### Casos de Uso
+- [x] Cadastro e login com JWT
+- [x] Listagem de filmes disponiveis
+- [x] Listagem de sessoes por filme
+- [x] Mapa de assentos em tempo real (disponivel, reservado, comprado)
+- [x] Lock distribuido de 10 minutos por assento via Redis
+- [x] Checkout e geracao de ingresso digital unico
+- [x] Portal "Meus Ingressos" com historico completo
+
+### Bonus
+- [x] Rate limiting nos endpoints de autenticacao
+- [x] Celery para liberacao automatica de locks expirados
+- [x] Celery para envio de email de confirmacao apos checkout
+- [x] Pipeline CI/CD com GitHub Actions
+- [x] Health check endpoint
+- [x] Seed de dados de exemplo
+- [x] Tratamento global de erros padronizado
 
 ---
 
 ## 🚀 Como Rodar
 
-### Pré-requisitos
-- Docker Desktop
+### Pre-requisitos
+- Docker Desktop instalado e rodando
 - Python 3.12+
 - Poetry
 
-### 1. Clone o repositório
+### 1. Clone o repositorio
 ```bash
 git clone https://github.com/Oskar-Fernandes/cinereserve.git
 cd cinereserve
@@ -84,12 +103,14 @@ cd cinereserve
 cp .env.example .env
 ```
 
-### 3. Instale as dependências
+Edite o `.env` com suas credenciais se necessario.
+
+### 3. Instale as dependencias
 ```bash
 poetry install
 ```
 
-### 4. Inicie os serviços
+### 4. Inicie os servicos (PostgreSQL + Redis)
 ```bash
 docker compose up -d db redis
 ```
@@ -104,49 +125,73 @@ poetry run python manage.py migrate
 poetry run python manage.py seed
 ```
 
-### 7. Inicie o servidor
+### 7. Crie o superusuario (opcional)
+```bash
+poetry run python manage.py createsuperuser
+```
+
+### 8. Inicie o servidor
 ```bash
 poetry run python manage.py runserver
 ```
 
+Acesse: **http://localhost:8000/api/docs/**
+
 ---
 
-## 📖 Documentação da API
+## 📖 Documentacao da API
 
-Acesse o Swagger em: **http://localhost:8000/api/docs/**
+| URL | Descricao |
+|-----|-----------|
+| http://localhost:8000/api/docs/ | Swagger UI |
+| http://localhost:8000/api/health/ | Health Check |
+| http://localhost:8000/admin/ | Painel Admin |
 
 ---
 
 ## 📡 Endpoints
 
-### Usuários
-| Método | Endpoint | Descrição | Auth |
+### Usuarios
+| Metodo | Endpoint | Descricao | Auth |
 |--------|----------|-----------|------|
-| POST | `/api/users/register/` | Cadastrar usuário | Não |
-| POST | `/api/users/login/` | Login (retorna JWT) | Não |
-| POST | `/api/users/token/refresh/` | Renovar token | Não |
+| POST | `/api/users/register/` | Cadastrar usuario | Nao |
+| POST | `/api/users/login/` | Login (retorna JWT) | Nao |
+| POST | `/api/users/token/refresh/` | Renovar token | Nao |
 | GET | `/api/users/profile/` | Ver perfil | Sim |
 
 ### Filmes
-| Método | Endpoint | Descrição | Auth |
+| Metodo | Endpoint | Descricao | Auth |
 |--------|----------|-----------|------|
-| GET | `/api/movies/` | Listar filmes | Não |
-| GET | `/api/movies/{id}/` | Detalhe do filme | Não |
-| GET | `/api/movies/{id}/sessions/` | Sessões do filme | Não |
+| GET | `/api/movies/` | Listar filmes | Nao |
+| GET | `/api/movies/{id}/` | Detalhe do filme | Nao |
+| GET | `/api/movies/{id}/sessions/` | Sessoes do filme | Nao |
 | GET | `/api/movies/sessions/{id}/seats/` | Mapa de assentos | Sim |
 
 ### Reservas
-| Método | Endpoint | Descrição | Auth |
+| Metodo | Endpoint | Descricao | Auth |
 |--------|----------|-----------|------|
 | POST | `/api/reservations/sessions/{s}/seats/{s}/reserve/` | Reservar assento (lock 10min) | Sim |
 | POST | `/api/reservations/sessions/{s}/seats/{s}/checkout/` | Finalizar e gerar ingresso | Sim |
 | GET | `/api/reservations/my-tickets/` | Meus ingressos | Sim |
 
 ### Sistema
-| Método | Endpoint | Descrição | Auth |
+| Metodo | Endpoint | Descricao | Auth |
 |--------|----------|-----------|------|
-| GET | `/api/health/` | Status da API | Não |
-| GET | `/api/docs/` | Documentação Swagger | Não |
+| GET | `/api/health/` | Status da API | Nao |
+| GET | `/api/docs/` | Documentacao Swagger | Nao |
+
+---
+
+## 🔄 Fluxo de Reserva
+```
+1. POST /api/users/login/          → Obter token JWT
+2. GET  /api/movies/               → Listar filmes
+3. GET  /api/movies/{id}/sessions/ → Ver sessoes disponiveis
+4. GET  /api/movies/sessions/{id}/seats/ → Ver mapa de assentos
+5. POST /api/reservations/.../reserve/  → Reservar assento (lock 10min)
+6. POST /api/reservations/.../checkout/ → Finalizar compra + email
+7. GET  /api/reservations/my-tickets/   → Ver ingressos
+```
 
 ---
 
@@ -159,11 +204,14 @@ poetry run pytest
 
 ## 🐳 Docker
 ```bash
-# Iniciar todos os serviços
+# Iniciar todos os servicos
 docker compose up -d
 
-# Parar todos os serviços
+# Parar todos os servicos
 docker compose down
+
+# Ver logs
+docker compose logs -f
 ```
 
 ---
@@ -171,12 +219,29 @@ docker compose down
 ## 📁 Estrutura do Projeto
 ```
 cinereserve/
-├── core/               # Configurações Django, URLs, Celery
-├── users/              # Cadastro e autenticação
-├── movies/             # Filmes, sessões e assentos
-├── reservations/       # Reservas e ingressos
-├── .github/workflows/  # CI/CD GitHub Actions
+├── core/                        # Configuracoes Django, URLs, Celery
+│   ├── settings.py
+│   ├── urls.py
+│   ├── celery.py
+│   ├── exceptions.py
+│   └── views.py
+├── users/                       # Cadastro e autenticacao
+├── movies/                      # Filmes, sessoes e assentos
+│   └── management/commands/     # Comando seed
+├── reservations/                # Reservas e ingressos
+├── .github/workflows/ci.yml     # CI/CD GitHub Actions
 ├── docker-compose.yml
 ├── Dockerfile
-└── pyproject.toml
+├── pyproject.toml
+└── .env.example
 ```
+
+---
+
+## 🔒 Seguranca
+
+- JWT com expiracao de 1 hora (refresh de 7 dias)
+- Rate limiting: 5 req/min no registro, 10 req/min no login
+- Variaveis sensiveis isoladas no `.env`
+- `.env` nunca commitado no repositorio
+'@ | Set-Content README.md -Encoding UTF8
