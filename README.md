@@ -195,6 +195,43 @@ Acesse: **http://localhost:8000/api/docs/**
 
 ---
 
+## Como Testar a API pelo Swagger
+
+### Passo 1 - Acesse o Swagger
+Abra no navegador: http://localhost:8000/api/docs/
+
+### Passo 2 - Registre um usuario
+Clique em POST /api/users/register/ > Try it out > cole o body abaixo > Execute:
+
+{
+  "username": "teste",
+  "email": "teste@email.com",
+  "password": "senha123"
+}
+
+### Passo 3 - Faca o login
+Clique em POST /api/users/login/ > Try it out > cole o body abaixo > Execute:
+
+{
+  "email": "teste@email.com",
+  "password": "senha123"
+}
+
+Na resposta, copie o valor do campo "access" (o token JWT).
+
+### Passo 4 - Autorize no Swagger
+Clique no botao "Authorize" no canto superior direito da pagina.
+Cole APENAS o token no campo Value (sem a palavra Bearer).
+Clique em Authorize e depois em Close.
+
+### Passo 5 - Teste o fluxo completo
+1. GET /api/movies/ - Liste os filmes
+2. GET /api/movies/1/sessions/ - Veja as sessoes do filme 1
+3. GET /api/movies/sessions/1/seats/ - Veja o mapa de assentos
+4. POST /api/reservations/sessions/1/seats/2/reserve/ - Reserve o assento 2
+5. POST /api/reservations/sessions/1/seats/2/checkout/ - Finalize a compra
+6. GET /api/reservations/my-tickets/ - Veja seus ingressos
+
 ## 🧪 Rodando os Testes
 ```bash
 poetry run pytest
