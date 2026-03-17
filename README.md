@@ -1,4 +1,4 @@
-@'
+﻿
 # 🎬 CineReserve API
 
 ![CI](https://github.com/Oskar-Fernandes/cinereserve/actions/workflows/ci.yml/badge.svg)
