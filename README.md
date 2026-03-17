@@ -202,20 +202,22 @@ Abra no navegador: http://localhost:8000/api/docs/
 
 ### Passo 2 - Registre um usuario
 Clique em POST /api/users/register/ > Try it out > cole o body abaixo > Execute:
-
+```json
 {
   "username": "teste",
   "email": "teste@email.com",
   "password": "senha123"
 }
+```
 
 ### Passo 3 - Faca o login
 Clique em POST /api/users/login/ > Try it out > cole o body abaixo > Execute:
-
+```json
 {
   "email": "teste@email.com",
   "password": "senha123"
 }
+```
 
 Na resposta, copie o valor do campo "access" (o token JWT).
 
